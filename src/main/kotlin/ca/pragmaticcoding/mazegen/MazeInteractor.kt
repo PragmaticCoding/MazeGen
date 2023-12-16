@@ -52,13 +52,18 @@ class MazeInteractor(val model: MazeModel) {
     }
 
     fun startRecursiveBacktrackingAlgorithm() {
-        Platform.runLater {
-            model.cells.forEach { cell -> cell.isVisited = false }
-            model.walls.forEach { wall -> wall.block() }
-        }
+        resetGrid()
         model.getCell(model.maxX.value, model.maxY.value)?.let {
             Platform.runLater { it.southWall.unblock() }
             recursiveBacktracking(it)
+        }
+    }
+
+    private fun resetGrid() {
+        Platform.runLater {
+            model.cells.forEach { cell -> cell.isVisited = false }
+            model.walls.forEach { wall -> wall.block() }
+            model.backtracking.value = false
         }
     }
 
@@ -70,7 +75,7 @@ class MazeInteractor(val model: MazeModel) {
         }
         currentCell.isVisited = true
         while (currentCell.getAdjacentCells().any { cell -> !cell.isVisited }) {
-            with(currentCell.getAdjacentCells().filter { cell -> !cell.isVisited }.shuffled()[0]) {
+            with(currentCell.getUnvisitedAdjacentCells().shuffled()[0]) {
                 Platform.runLater { currentCell.unblock(this) }
                 recursiveBacktracking(this)
             }
@@ -80,5 +85,32 @@ class MazeInteractor(val model: MazeModel) {
             model.backtracking.value = true
         }
         Thread.sleep(70)
+    }
+
+    fun primsAlgorithm() {
+        resetGrid()
+        model.getCell(model.maxX.value, model.maxY.value)?.let {
+            val frontierCells: MutableSet<Cell> = mutableSetOf(it)
+            it.isVisited = true
+            while (frontierCells.isNotEmpty()) {
+                val currentCell = frontierCells.shuffled()[0]
+                if (currentCell.getUnvisitedAdjacentCells().isNotEmpty()) {
+                    Thread.sleep(30)
+                    Platform.runLater {
+                        model.currentCell.value = currentCell
+                    }
+                    with(currentCell.getUnvisitedAdjacentCells().shuffled()[0]) {
+                        Platform.runLater { currentCell.unblock(this) }
+                        isVisited = true
+                        if (this.getUnvisitedAdjacentCells().isNotEmpty()) {
+                            frontierCells += this
+                        }
+                    }
+                }
+                if (currentCell.getUnvisitedAdjacentCells().isEmpty()) {
+                    frontierCells -= currentCell
+                }
+            }
+        }
     }
 }

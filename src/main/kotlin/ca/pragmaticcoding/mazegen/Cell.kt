@@ -10,6 +10,8 @@ class Cell(val x: Int, val y: Int, val northWall: Wall, val southWall: Wall, val
 
     fun getAdjacentCells(): List<Cell> = listOfNotNull(northCell, southCell, eastCell, westCell)
 
+    fun getUnvisitedAdjacentCells(): List<Cell> = getAdjacentCells().filter { cell -> !cell.isVisited }
+
     fun unblock(otherCell: Cell) {
         when (otherCell) {
             northCell -> northWall.unblock()

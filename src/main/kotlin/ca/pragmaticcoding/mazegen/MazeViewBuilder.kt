@@ -1,6 +1,8 @@
 package ca.pragmaticcoding.mazegen
 
 import javafx.beans.binding.Bindings
+import javafx.beans.property.BooleanProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
@@ -18,15 +20,22 @@ class MazeViewBuilder(
     Builder<Region> {
     private val hSize = 22.0
     private val vSize = 20.0
+    private val mazeRunning: BooleanProperty = SimpleBooleanProperty(false)
 
     override fun build(): Region = BorderPane().apply {
-        right = Button("Backtracking").apply {
-            onAction = EventHandler {
-                isDisable = true
-                mazeBuilder.invoke(Algorithm.BACKTRACKING) { isDisable = false }
-            }
-        }
+        right = buttonBox()
         center = StackPane(drawMaze()).apply { padding = Insets(12.0) }
+    }
+
+    private fun buttonBox(): Region =
+        VBox(10.0, mazeButton("Backtracking", Algorithm.BACKTRACKING), mazeButton("Prim", Algorithm.PRIM))
+
+    private fun mazeButton(name: String, algorithm: Algorithm) = Button(name).apply {
+        onAction = EventHandler {
+            mazeRunning.value = true
+            mazeBuilder.invoke(algorithm) { mazeRunning.value = false }
+        }
+        disableProperty().bind(mazeRunning)
     }
 
     private fun drawMaze(): Region = Pane().apply {

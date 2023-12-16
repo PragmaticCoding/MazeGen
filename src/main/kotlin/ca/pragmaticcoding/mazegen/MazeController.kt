@@ -21,7 +21,7 @@ class MazeController {
                 when (algorithm) {
                     Algorithm.BACKTRACKING -> interactor.startRecursiveBacktrackingAlgorithm()
                     Algorithm.KRUSKAL -> TODO()
-                    Algorithm.PRIM -> TODO()
+                    Algorithm.PRIM -> interactor.primsAlgorithm()
                 }
                 return null
             }
